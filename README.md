@@ -60,6 +60,7 @@ Frontend Fetch API
 | Amazon SQS  | Queue messaging    |
 | DynamoDB    | NoSQL database     |
 | CloudWatch  | Monitoring & logs  |
+
 Flow
 -----------------
 Amazon S3: It has UI to input data
