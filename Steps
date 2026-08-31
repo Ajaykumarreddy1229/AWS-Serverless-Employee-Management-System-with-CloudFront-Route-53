@@ -1,0 +1,101 @@
+STEP 1 — Create DynamoDB Table
+-----------------------------
+Table name : employees
+Partition key: id [String]
+
+STEP 2 — Create SQS Queue
+-------------------------
+
+Create Queue: employee-queue
+Type: Standard
+Keep all defaults
+
+STEP 3 — Create Producer Lambda [It receives data from UI --> API gateway(in json) --> This Lambda will get data and add to SQS]
+----------------------------
+Create IAM ROLE
+TE = Lambda
+Permissions = SQSfullaccess, DynamoDBFullaccess
+Name: employee-producer
+Runtime: Python 3.14
+Role: select role
+Add Environment Variable in Lambda
+---------------------
+Configuration → Environment variables
+QUEUE_URL = https://sqs.ap-south-1.amazonaws.com/289857919920/employee-queue
+
+Deploy function.
+STEP4— Create Consumer Lambda [This lambda will collect data from SQS and store to DynamoDB]
+Deploy.
+STEP 5— Connect SQS Trigger
+----------------------------
+Open employee-consumer
+
+Add Trigger --> Select SQS --> employee-queue --> Enable trigger.
+
+In SQS , trigger added automatically [ SQS → Lambda automatically ]
+
+STEP5 — Create Fetch Lambda
+-----------------------------
+Name : get-employees
+Runtime: Python 3.14
+ROLE: select role
+DEPLOY
+STEP 6 — Create API Gateway
+---------------------------
+We will create
+
+POST /register
+GET  /employees
+
+
+Create --> HTTP API --> Build
+API name: employee-api
+Add integrations --> Lambda --> employee-producer --> Next
+
+Add Route --> POST --> Resource path = /register , integration target = employee-producer --> next
+
+Configure stages --> Remove $default stage --> Next --> Create
+
+
+Left side --> Routes --> Create a route --> GET -> /employees --> Create
+Left side ---> integrations --> Select /employees --> GET --> Create and attach integration
+Attach this integration to a route = GET /employees
+Integration type = Lambda
+Select = get-employees
+
+Left Side --> CORS --> Configure
+Access-Control-Allow-Origin = *
+Access-Control-Allow-Headers = *
+Access-Control-Allow-Methods = GET POST
+
+
+Left side ---> Deploy --> stage 
+Create Stage --> Name: prod --> keep all defaults and create
+DEPLOY --> select prod --> deploy
+
+get the URL  : https://b70981n5vh.execute-api.ap-south-1.amazonaws.com/prod
+STEP 7— Create S3 public bucket and enable static website hosting
+---------------------------
+
+In this folder index.html page is available
+
+ATTENTION: Edit the index.html and update the URL
+--------
+
+Create a S3 public bucket and upload index.html and enable static website hosting
+
+Open Application and start adding employees
+
+
+See the data in DynamoDB
+
+
+See the SQS Queues, you dont find any messages because employee-consumer is automatically consuming the message
+
+If you want to see, remove the trigger in employee-consumer lambda function
+
+And add the new entries from application, that will go to SQS , as there are no consumers all messages are there in the Queues
+
+Now enable again the trigger, automatically what ever is there in the SQS messages will be consumed by lambda and stored in Dynamodb
+
+
